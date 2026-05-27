@@ -5,7 +5,6 @@ from rest_framework import status
 from .models import Company, Distributor, Store
 from .serializers import CompanySerializer, DistributorSerializer, StoreSerializer
 
-
 class CompanyListCreateAPIView(APIView):
 
     def get(self, request):

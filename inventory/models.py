@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+
 from catalog.models import Product
-from partners.models import Distributor, Store
+from partners.models import Company, Distributor, Store
 
 
 class Inventory(models.Model):
@@ -9,7 +10,16 @@ class Inventory(models.Model):
         Product,
         on_delete=models.CASCADE,
         related_name="inventories"
-)
+    )
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="inventories",
+        null=True,
+        blank=True
+    )
+
     distributor = models.ForeignKey(
         Distributor,
         on_delete=models.CASCADE,
@@ -25,19 +35,27 @@ class Inventory(models.Model):
         null=True,
         blank=True
     )
+
     quantity = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     def clean(self):
-        if self.distributor and self.store:
-            raise ValidationError("Inventory cannot belong to both distributor and store.")
-        if not self.distributor and not self.store:
-            raise ValidationError("Inventory must belong to either distributor or store.")
+        locations = [self.company, self.distributor, self.store]
+        selected_locations = [location for location in locations if location]
+
+        if len(selected_locations) != 1:
+            raise ValidationError(
+                "Inventory must belong to exactly one location: company, distributor, or store."
+            )
 
     def __str__(self):
+        if self.company:
+            return f"{self.product.name} at {self.company.name}: {self.quantity}"
+
         if self.distributor:
-            return f"{self.product.name} - {self.distributor.name} - {self.quantity}"
-        return f"{self.product.name} - {self.store.name} - {self.quantity}"
+            return f"{self.product.name} at {self.distributor.name}: {self.quantity}"
+
+        return f"{self.product.name} at {self.store.name}: {self.quantity}"
 
 
 class StockRequest(models.Model):
