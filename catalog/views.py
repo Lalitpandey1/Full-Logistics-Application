@@ -4,10 +4,11 @@ from rest_framework import status
 
 from .models import Product
 from .serializers import ProductSerializer
+from accounts.permissions import IsCompanyAdmin
 
 
 class ProductListCreateAPIView(APIView):
-
+    permission_classes = [IsCompanyAdmin]
     def get(self, request):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)

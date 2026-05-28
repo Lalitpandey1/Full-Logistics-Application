@@ -58,22 +58,65 @@ class Inventory(models.Model):
         return f"{self.product.name} at {self.store.name}: {self.quantity}"
 
 
+class DistributorStockRequest(models.Model):
+    STATUS_CHOICES = [
+        ("PENDING", "Pending"),
+        ("APPROVED", "Approved"),
+        ("REJECTED", "Rejected"),
+    ]
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="distributor_stock_requests"
+    )
+
+    distributor = models.ForeignKey(
+        Distributor,
+        on_delete=models.CASCADE,
+        related_name="company_stock_requests"
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="distributor_stock_requests"
+    )
+
+    quantity = models.PositiveIntegerField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.distributor.name} requested {self.quantity} {self.product.name} from {self.company.name}"
+
+
 class StockRequest(models.Model):
     STATUS_CHOICES = [
         ("PENDING", "Pending"),
         ("APPROVED", "Approved"),
         ("REJECTED", "Rejected"),
     ]
+
     store = models.ForeignKey(
         Store,
         on_delete=models.CASCADE,
         related_name="stock_requests"
     )
+
     distributor = models.ForeignKey(
         Distributor,
         on_delete=models.CASCADE,
         related_name="stock_requests"
     )
+
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
@@ -81,11 +124,13 @@ class StockRequest(models.Model):
     )
 
     quantity = models.PositiveIntegerField()
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default="PENDING"
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
